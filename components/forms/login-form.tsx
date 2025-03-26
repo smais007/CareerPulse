@@ -39,7 +39,12 @@ const LoginForm = async () => {
               />
               {/* <Button className="w-full"> Login with GitHub</Button> */}
             </form>
-            <form>
+            <form
+              action={async () => {
+                "use server";
+                await signIn("google", { redirectTo: "/" });
+              }}
+            >
               {/* <Button className="w-full"> Login with Google</Button> */}
               <GeneralSubmitButton
                 text="Login with Google"
