@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { countryList } from "@/utils/countries-list";
 import { Textarea } from "@/components/ui/textarea";
+import { UploadDropzone } from "@/utils/uploadthing";
 const CompanyForm = () => {
   const form = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
@@ -129,6 +130,27 @@ const CompanyForm = () => {
                 <Textarea
                   placeholder="Write something about your comapany"
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="logo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Logo</FormLabel>
+              <FormControl>
+                <UploadDropzone
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    field.onChange(res?.[0].url);
+                  }}
+                  onUploadError={() => {
+                    console.log("Upload failed");
+                  }}
                 />
               </FormControl>
               <FormMessage />
