@@ -1,9 +1,38 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Logo from "@/public/globe.svg";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import UserTypeSelection from "./user-type-form";
+import CompanyForm from "./company-form";
+
+type UserSelectionType = "company" | "jobSeeker" | null;
 
 const OnboardingForm = () => {
+  const [step, setStep] = useState(1);
+  const [userType, setUserType] = useState<UserSelectionType>(null);
+
+  function handleUserTypeSeletion(type: UserSelectionType) {
+    setUserType(type);
+    setStep(2);
+  }
+
+  function renderSteps() {
+    switch (step) {
+      case 1:
+        return <UserTypeSelection onSelect={handleUserTypeSeletion} />;
+      case 2:
+        return userType === "company" ? (
+          <CompanyForm />
+        ) : (
+          <p>Job Seeker form</p>
+        );
+      default:
+        return null;
+    }
+  }
+
   return (
     <>
       <div className="flex items-center gap-2 mb-10">
@@ -11,7 +40,7 @@ const OnboardingForm = () => {
         <h1 className="text-2xl font-bold">Logo</h1>
       </div>
       <Card className="max-w-lg w-full">
-        <CardContent></CardContent>
+        <CardContent className="p-6">{renderSteps()}</CardContent>
       </Card>
     </>
   );
