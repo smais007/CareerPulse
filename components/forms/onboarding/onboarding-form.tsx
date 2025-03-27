@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import UserTypeSelection from "./user-type-form";
 import CompanyForm from "./company-form";
+import JobSeekerForm from "./jobseeker-form";
 
 type UserSelectionType = "company" | "jobSeeker" | null;
 
@@ -23,11 +24,7 @@ const OnboardingForm = () => {
       case 1:
         return <UserTypeSelection onSelect={handleUserTypeSeletion} />;
       case 2:
-        return userType === "company" ? (
-          <CompanyForm />
-        ) : (
-          <p>Job Seeker form</p>
-        );
+        return userType === "company" ? <CompanyForm /> : <JobSeekerForm />;
       default:
         return null;
     }
