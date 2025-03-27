@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +26,11 @@ import {
 import { countryList } from "@/utils/countries-list";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadDropzone } from "@/utils/uploadthing";
-const CompanyForm = () => {
+import { createCompany } from "@/app/action";
+import { Button } from "@/components/ui/button";
+import { Loader2, XIcon } from "lucide-react";
+import Image from "next/image";
+export default function CompanyForm() {
   const form = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -36,9 +42,25 @@ const CompanyForm = () => {
       xAccount: "",
     },
   });
+
+  const [pending, setPending] = React.useState(false);
+
+  async function onSubmit(data: z.infer<typeof companySchema>) {
+    try {
+      setPending(true);
+      await createCompany(data);
+    } catch (error) {
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        console.log("Error creating company:", error);
+      }
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
@@ -143,23 +165,55 @@ const CompanyForm = () => {
             <FormItem>
               <FormLabel>Logo</FormLabel>
               <FormControl>
-                <UploadDropzone
-                  endpoint="imageUploader"
-                  onClientUploadComplete={(res) => {
-                    field.onChange(res?.[0].url);
-                  }}
-                  onUploadError={() => {
-                    console.log("Upload failed");
-                  }}
-                />
+                {field.value ? (
+                  <div className="relative w-fit">
+                    <Image
+                      src={field.value}
+                      alt="Logo"
+                      width={100}
+                      height={100}
+                      className="rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2"
+                      onClick={() => field.onChange("")}
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <UploadDropzone
+                    endpoint="imageUploader"
+                    onClientUploadComplete={(res) => {
+                      field.onChange(res?.[0].url);
+                    }}
+                    onUploadError={() => {
+                      console.log("Upload failed");
+                    }}
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <Button type="submit" disabled={pending}>
+          {pending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span>Creating Company</span>
+            </>
+          ) : (
+            <>
+              <span>Create Company</span>
+            </>
+          )}
+        </Button>
       </form>
     </Form>
   );
-};
-
-export default CompanyForm;
+}
