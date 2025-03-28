@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { jobSchema } from "@/utils/zod-schemas";
@@ -25,6 +26,7 @@ import {
 } from "../ui/select";
 import { countryList } from "@/utils/countries-list";
 import { SalaryRangeSelector } from "../general/salary-range-selector";
+import { JobDescriptionEditor } from "../text-editor/job-description-editor";
 
 export function CreateJobForm() {
   const form = useForm<z.infer<typeof jobSchema>>({
@@ -149,6 +151,20 @@ export function CreateJobForm() {
                 </FormControl>
               </FormItem>
             </div>
+
+            <FormField
+              control={form.control}
+              name="jobDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Job Description</FormLabel>
+                  <FormControl>
+                    <JobDescriptionEditor field={field as any} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
       </form>
