@@ -12,6 +12,7 @@ import MetaLogo from "@/public/Meta.svg";
 import Samsung from "@/public/samsung.svg";
 import VercelLogo from "@/public/vercel.svg";
 import Image from "next/image";
+import { CreateJobForm } from "@/components/forms/create-job-form";
 
 const companies = [
   { id: 1, name: "Google", logo: GoogleLogo },
@@ -52,11 +53,9 @@ const stats = [
 export default function PostJobPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-      <Card className="col-span-1 lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Post Job</CardTitle>
-        </CardHeader>
-      </Card>
+      <div className="col-span-1 lg:col-span-2">
+        <CreateJobForm />
+      </div>
       <div className="col-span-1">
         <Card className="h-full">
           <CardHeader>
