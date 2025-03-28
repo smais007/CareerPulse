@@ -1,10 +1,12 @@
 import Link from "next/link";
 import Logo from "@/public/globe.svg";
 import Image from "next/image";
-import { Button } from "../ui/button";
-import { auth, signOut } from "@/utils/auth";
+import { auth } from "@/utils/auth";
+import { UserDropdown } from "./user-dropdown";
 export async function Navbar() {
   const session = await auth();
+
+  console.log("session", session);
 
   return (
     <nav className="flex items-center justify-between py-5">
@@ -12,20 +14,19 @@ export async function Navbar() {
         <Image src={Logo} alt="Logo" width={40} height={40} />
         <h1 className="text-2xl font-bold">Logo</h1>
       </Link>
-      <div className="flex items-center gap-4">
+
+      {/* Desktop navbar   */}
+      <div className="hidden md:flex items-center gap-5">
+        <Link href={"/post-job"}>Post Job</Link>
+
         {session?.user ? (
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
-            <Button>Logout</Button>
-          </form>
+          <UserDropdown
+            name={session.user.name as string}
+            email={session.user.email as string}
+            image={session.user.image as string}
+          />
         ) : (
-          <Link href="/login">
-            <Button>Login</Button>
-          </Link>
+          <Link href={"/login"}>Login</Link>
         )}
       </div>
     </nav>
