@@ -53,9 +53,8 @@ const stats = [
 export default function PostJobPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-      <div className="col-span-1 lg:col-span-2">
-        <CreateJobForm />
-      </div>
+      <CreateJobForm />
+
       <div className="col-span-1">
         <Card className="h-full">
           <CardHeader>
