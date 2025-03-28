@@ -29,6 +29,8 @@ export function JobDescriptionEditor({ field }: Props) {
     onUpdate({ editor }) {
       field.onChange(JSON.stringify(editor.getJSON()));
     },
+
+    content: field.value ? JSON.parse(field.value) : "",
   });
 
   return (
