@@ -80,42 +80,57 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
 }
 
 export async function createJob(data: z.infer<typeof jobSchema>) {
-  const user = await requireUser();
+  try {
+    const user = await requireUser();
 
-  const req = await request();
-  const decision = await aj.protect(req);
-  if (decision.isDenied()) {
-    throw new Error("Forbidden");
+    const req = await request();
+    const decision = await aj.protect(req);
+    if (decision.isDenied()) {
+      console.log(" 🚫 Request denied by Arcjet protection");
+      return { error: " 🚫Request blocked by security rules" };
+    }
+
+    console.log(" 🆗 Validating job data");
+    const validatedData = jobSchema.parse(data);
+    console.log(" 🆗Data validated successfully");
+
+    console.log("🆗Looking up company");
+    const company = await prisma.company.findUnique({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!company?.id) {
+      console.log("No company found for user, redirecting to onboarding");
+      return { error: "Please complete company onboarding first" };
+    }
+
+    console.log(" 🆗Creating job post");
+    await prisma.jobPost.create({
+      data: {
+        jobDescription: validatedData.jobDescription,
+        jobTitle: validatedData.jobTitle,
+        employmentType: validatedData.employmentType,
+        location: validatedData.location,
+        salaryFrom: validatedData.salaryFrom,
+        salaryTo: validatedData.salaryTo,
+        listingDuration: validatedData.listingDuration,
+        benefits: validatedData.benefits,
+        companyId: company.id,
+      },
+    });
+    console.log("Job post created successfully");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in createJob:", error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "An unknown error occurred" };
   }
-
-  const validatedData = jobSchema.parse(data);
-
-  const company = await prisma.company.findUnique({
-    where: {
-      userId: user.id,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!company?.id) {
-    return redirect("/onboarding");
-  }
-
-  await prisma.jobPost.create({
-    data: {
-      jobDescription: validatedData.jobDescription,
-      jobTitle: validatedData.jobTitle,
-      employmentType: validatedData.employmentType,
-      location: validatedData.location,
-      salaryFrom: validatedData.salaryFrom,
-      salaryTo: validatedData.salaryTo,
-      listingDuration: validatedData.listingDuration,
-      companyId: company.id,
-    },
-  });
-
-  // return redirect(`/jobs/${jobPost.id}`);
-  return redirect("/");
 }

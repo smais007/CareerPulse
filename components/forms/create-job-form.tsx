@@ -32,7 +32,7 @@ import { UploadDropzone } from "@/utils/uploadthing";
 import { Textarea } from "../ui/textarea";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { Loader2, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { JobListingDurationSelector } from "../general/job-listing-duration-selector";
 import { createJob } from "@/app/action";
 import React from "react";
@@ -75,13 +75,48 @@ export function CreateJobForm({
   });
   const [pending, setPending] = React.useState(false);
 
+  const [error, setError] = React.useState<string | null>(null);
+
   async function onSubmit(value: z.infer<typeof jobSchema>) {
     try {
+      console.log("Form submission started with data:", value);
       setPending(true);
-      await createJob(value);
+      setError(null);
+
+      const response = await createJob(value);
+      console.log("Server response:", response);
+
+      if (!response) {
+        setError("No response received from server");
+        return;
+      }
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      if (response.success) {
+        // Handle successful submission
+        console.log("Job created successfully");
+        return;
+      }
+
+      setError("Unexpected response from server");
     } catch (error) {
-      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
-        console.log("Error creating company:", error);
+      console.error("Form submission error:", error);
+      if (error instanceof Error) {
+        if (error.message === "Forbidden") {
+          setError("Request blocked by security rules. Please try again.");
+        } else if (error.message === "NEXT_REDIRECT") {
+          // Ignore redirect errors
+        } else {
+          setError(
+            "Failed to create job. Please check your input and try again."
+          );
+        }
+      } else {
+        setError("An unexpected error occurred");
       }
     } finally {
       setPending(false);
@@ -92,7 +127,24 @@ export function CreateJobForm({
     <Form {...form}>
       <form
         className="col-span-1 lg:col-span-2 flex flex-col gap-8"
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={async (e) => {
+          e.preventDefault(); // Prevent default form submission
+          console.log("Form submitted");
+          try {
+            console.log("Form data before validation:", form.getValues());
+            const isValid = await form.trigger();
+            console.log("Form validation result:", isValid);
+            if (isValid) {
+              await onSubmit(form.getValues());
+            } else {
+              const errors = form.formState.errors;
+              console.log("Form validation failed with errors:", errors);
+              setError("Please fix the validation errors before submitting");
+            }
+          } catch (error) {
+            console.error("Form submission handler error:", error);
+          }
+        }}
       >
         <Card>
           <CardHeader>
@@ -385,17 +437,9 @@ export function CreateJobForm({
           </CardContent>
         </Card>
 
+        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Creating Job Listing....</span>
-            </>
-          ) : (
-            <>
-              <span>Create Job </span>
-            </>
-          )}
+          {pending ? "Creating Job..." : "Create Job"}
         </Button>
       </form>
     </Form>
