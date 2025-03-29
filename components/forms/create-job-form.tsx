@@ -32,20 +32,38 @@ import { UploadDropzone } from "@/utils/uploadthing";
 import { Textarea } from "../ui/textarea";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { XIcon } from "lucide-react";
+import { Loader2, XIcon } from "lucide-react";
 import { JobListingDurationSelector } from "../general/job-listing-duration-selector";
+import { createJob } from "@/app/action";
+import React from "react";
 
-export function CreateJobForm() {
+interface CompanyDataProps {
+  companyName: string;
+  companyLocation: string;
+  companyAbout: string;
+  companyLogo: string;
+  companyWebsite: string;
+  companyXAccount: string | null;
+}
+
+export function CreateJobForm({
+  companyAbout,
+  companyLocation,
+  companyLogo,
+  companyName,
+  companyWebsite,
+  companyXAccount,
+}: CompanyDataProps) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       benefits: [],
-      companyName: "",
-      companyLocation: "",
-      companyAbout: "",
-      companyLogo: "",
-      companyWebsite: "",
-      companyXAccount: "",
+      companyName: companyName,
+      companyLocation: companyLocation,
+      companyAbout: companyAbout,
+      companyLogo: companyLogo,
+      companyWebsite: companyWebsite,
+      companyXAccount: companyXAccount || "",
       jobDescription: "",
       jobTitle: "",
       employmentType: "",
@@ -55,9 +73,27 @@ export function CreateJobForm() {
       listingDuration: 30,
     },
   });
+  const [pending, setPending] = React.useState(false);
+
+  async function onSubmit(value: z.infer<typeof jobSchema>) {
+    try {
+      setPending(true);
+      await createJob(value);
+    } catch (error) {
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        console.log("Error creating company:", error);
+      }
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <Form {...form}>
-      <form className="col-span-1 lg:col-span-2 flex flex-col gap-8">
+      <form
+        className="col-span-1 lg:col-span-2 flex flex-col gap-8"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         <Card>
           <CardHeader>
             <CardTitle>Job Information</CardTitle>
@@ -156,6 +192,7 @@ export function CreateJobForm() {
                     currency="USD"
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             </div>
 
@@ -341,11 +378,25 @@ export function CreateJobForm() {
                   <FormControl>
                     <JobListingDurationSelector field={field as any} />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </CardContent>
         </Card>
+
+        <Button type="submit" disabled={pending} className="w-full">
+          {pending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span>Creating Job Listing....</span>
+            </>
+          ) : (
+            <>
+              <span>Create Job </span>
+            </>
+          )}
+        </Button>
       </form>
     </Form>
   );

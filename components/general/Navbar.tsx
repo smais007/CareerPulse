@@ -6,7 +6,7 @@ import { UserDropdown } from "./user-dropdown";
 export async function Navbar() {
   const session = await auth();
 
-  console.log("session", session);
+  // console.log("session", session);
 
   return (
     <nav className="flex items-center justify-between py-5">
