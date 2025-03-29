@@ -33,6 +33,7 @@ import { Textarea } from "../ui/textarea";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
+import { JobListingDurationSelector } from "../general/job-listing-duration-selector";
 
 export function CreateJobForm() {
   const form = useForm<z.infer<typeof jobSchema>>({
@@ -61,7 +62,7 @@ export function CreateJobForm() {
           <CardHeader>
             <CardTitle>Job Information</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -191,7 +192,7 @@ export function CreateJobForm() {
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -322,6 +323,24 @@ export function CreateJobForm() {
                     )}
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Job Listing Duration</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <FormField
+              name="listingDuration"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <JobListingDurationSelector field={field as any} />
+                  </FormControl>
                 </FormItem>
               )}
             />
