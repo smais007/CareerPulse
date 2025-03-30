@@ -90,7 +90,7 @@ export default async function PostJobPage() {
       />
 
       <div className="col-span-1">
-        <Card className="h-full">
+        <Card className="">
           <CardHeader>
             <CardTitle>Trused by thousands of companies</CardTitle>
             <CardDescription>

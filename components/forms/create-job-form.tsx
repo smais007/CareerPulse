@@ -91,15 +91,14 @@ export function CreateJobForm({
         return;
       }
 
-      if (response.error) {
-        setError(response.error);
-        return;
-      }
+      // if (response.error) {
+      //   setError(response.error);
+      //   return;
+      // }
 
-      if (response.success) {
-        // Handle successful submission
-        console.log("Job created successfully");
-      }
+      // if (response.success) {
+      //   console.log("Job created successfully");
+      // }
 
       setError("Unexpected response from server");
     } catch (error) {
