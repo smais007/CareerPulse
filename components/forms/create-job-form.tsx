@@ -99,7 +99,6 @@ export function CreateJobForm({
       if (response.success) {
         // Handle successful submission
         console.log("Job created successfully");
-        return;
       }
 
       setError("Unexpected response from server");

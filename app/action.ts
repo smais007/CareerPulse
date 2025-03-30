@@ -81,20 +81,22 @@ export async function createJobSeeker(data: z.infer<typeof jobSeekerSchema>) {
 
 export async function createJob(data: z.infer<typeof jobSchema>) {
   try {
+    console.log("Starting job creation process");
     const user = await requireUser();
+    console.log("User retrieved:", user.id);
 
-    const req = await request();
-    const decision = await aj.protect(req);
-    if (decision.isDenied()) {
-      console.log(" 🚫 Request denied by Arcjet protection");
-      return { error: " 🚫Request blocked by security rules" };
-    }
+    // const req = await request();
+    // const decision = await aj.protect(req);
+    // if (decision.isDenied()) {
+    //   console.log("Request denied by Arcjet protection");
+    //   return { error: "Request blocked by security rules" };
+    // }
 
-    console.log(" 🆗 Validating job data");
+    console.log("Validating job data");
     const validatedData = jobSchema.parse(data);
-    console.log(" 🆗Data validated successfully");
+    console.log("Data validated successfully");
 
-    console.log("🆗Looking up company");
+    console.log("Looking up company");
     const company = await prisma.company.findUnique({
       where: {
         userId: user.id,
@@ -109,7 +111,7 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
       return { error: "Please complete company onboarding first" };
     }
 
-    console.log(" 🆗Creating job post");
+    console.log("Creating job post");
     await prisma.jobPost.create({
       data: {
         jobDescription: validatedData.jobDescription,
