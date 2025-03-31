@@ -15,7 +15,7 @@ model User {
   image               String?
   accounts            Account[]
   sessions            Session[]
-  stripeCustomerId    String?
+  stripeCustomerId    String?    @unique
   userType            UserType?
   onboardingCompleted Boolean    @default(false)
   Company             Company?
