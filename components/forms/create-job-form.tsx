@@ -73,48 +73,16 @@ export function CreateJobForm({
       listingDuration: 30,
     },
   });
-  const [pending, setPending] = React.useState(false);
 
-  const [error, setError] = React.useState<string | null>(null);
+  const [pending, setPending] = React.useState(false);
 
   async function onSubmit(value: z.infer<typeof jobSchema>) {
     try {
-      console.log("Form submission started with data:", value);
       setPending(true);
-      setError(null);
-
-      const response = await createJob(value);
-      console.log("Server response:", response);
-
-      if (!response) {
-        setError("No response received from server");
-        return;
-      }
-
-      // if (response.error) {
-      //   setError(response.error);
-      //   return;
-      // }
-
-      // if (response.success) {
-      //   console.log("Job created successfully");
-      // }
-
-      setError("Unexpected response from server");
+      await createJob(value);
     } catch (error) {
-      console.error("Form submission error:", error);
-      if (error instanceof Error) {
-        if (error.message === "Forbidden") {
-          setError("Request blocked by security rules. Please try again.");
-        } else if (error.message === "NEXT_REDIRECT") {
-          // Ignore redirect errors
-        } else {
-          setError(
-            "Failed to create job. Please check your input and try again."
-          );
-        }
-      } else {
-        setError("An unexpected error occurred");
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        console.log("Error creating company:", error);
       }
     } finally {
       setPending(false);
@@ -125,24 +93,7 @@ export function CreateJobForm({
     <Form {...form}>
       <form
         className="col-span-1 lg:col-span-2 flex flex-col gap-8"
-        onSubmit={async (e) => {
-          e.preventDefault(); // Prevent default form submission
-          console.log("Form submitted");
-          try {
-            console.log("Form data before validation:", form.getValues());
-            const isValid = await form.trigger();
-            console.log("Form validation result:", isValid);
-            if (isValid) {
-              await onSubmit(form.getValues());
-            } else {
-              const errors = form.formState.errors;
-              console.log("Form validation failed with errors:", errors);
-              setError("Please fix the validation errors before submitting");
-            }
-          } catch (error) {
-            console.error("Form submission handler error:", error);
-          }
-        }}
+        onSubmit={form.handleSubmit(onSubmit)}
       >
         <Card>
           <CardHeader>
@@ -173,7 +124,7 @@ export function CreateJobForm({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
-                      <FormControl>
+                      <FormControl className="w-full">
                         <SelectTrigger>
                           <SelectValue placeholder="Select a job type" />
                         </SelectTrigger>
@@ -204,7 +155,7 @@ export function CreateJobForm({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
-                      <FormControl>
+                      <FormControl className="w-full">
                         <SelectTrigger>
                           <SelectValue placeholder="Select location" />
                         </SelectTrigger>
@@ -305,7 +256,7 @@ export function CreateJobForm({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
-                      <FormControl>
+                      <FormControl className="w-full">
                         <SelectTrigger>
                           <SelectValue placeholder="Select location" />
                         </SelectTrigger>
@@ -435,8 +386,7 @@ export function CreateJobForm({
           </CardContent>
         </Card>
 
-        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" className="w-full" disabled={pending}>
           {pending ? "Creating Job..." : "Create Job"}
         </Button>
       </form>
