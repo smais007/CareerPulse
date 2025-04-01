@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import arcjet, { detectBot, shield } from "@/utils/arcjet";
+import { inngest } from "@/utils/inngest/client";
 import { JobListingDurationPricing } from "@/utils/lisiting-price";
 import { requireUser } from "@/utils/requireUser";
 import { stripe } from "@/utils/stripe";
@@ -154,6 +155,14 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
     console.log("No pricing tier found for listing duration");
     return new Error("No pricing tier found for listing duration");
   }
+
+  await inngest.send({
+    name: "job/created",
+    data: {
+      jobId: jobPost.id,
+      exiprationDays: validateData.listingDuration,
+    },
+  });
 
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
