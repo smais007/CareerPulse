@@ -1,6 +1,8 @@
+import { saveJobPost, unSaveJobPost } from "@/app/action";
 import { JSONtoHTML } from "@/components/general/json-to-html";
+import { SaveJobButton } from "@/components/general/save-job-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -9,7 +11,7 @@ import { auth } from "@/utils/auth";
 import { benefits } from "@/utils/benefits";
 import { getFlagEmoji } from "@/utils/countries-list";
 import { request } from "@arcjet/next";
-import { Heart } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 type Params = Promise<{ jobId: string }>;
@@ -43,39 +45,54 @@ function getClient(session: boolean) {
   }
 }
 
-async function getJobDetails(jobId: string) {
-  const jobData = await prisma.jobPost.findUnique({
-    where: {
-      id: jobId,
-      status: "ACTIVE",
-    },
-    select: {
-      jobTitle: true,
-      employmentType: true,
-      location: true,
-      salaryFrom: true,
-      salaryTo: true,
-      jobDescription: true,
-      benefits: true,
-      createdAt: true,
-      listingDuration: true,
-      Company: {
-        select: {
-          name: true,
-          location: true,
-          about: true,
-          logo: true,
-          website: true,
+async function getJobDetails(jobId: string, userId?: string) {
+  const [jobData, savedJob] = await Promise.all([
+    await prisma.jobPost.findUnique({
+      where: {
+        id: jobId,
+        status: "ACTIVE",
+      },
+      select: {
+        jobTitle: true,
+        employmentType: true,
+        location: true,
+        salaryFrom: true,
+        salaryTo: true,
+        jobDescription: true,
+        benefits: true,
+        createdAt: true,
+        listingDuration: true,
+        Company: {
+          select: {
+            name: true,
+            location: true,
+            about: true,
+            logo: true,
+            website: true,
+          },
         },
       },
-    },
-  });
+    }),
+    userId
+      ? prisma.savedJobPost.findUnique({
+          where: {
+            userId_jobPostId: {
+              userId: userId,
+              jobPostId: jobId,
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      : null,
+  ]);
 
   if (!jobData) {
     return notFound();
   }
 
-  return jobData;
+  return { jobData, savedJob };
 }
 
 export default async function JobPage({ params }: { params: Params }) {
@@ -89,9 +106,9 @@ export default async function JobPage({ params }: { params: Params }) {
     throw new Error("Rate limit exceeded");
   }
 
-  const data = await getJobDetails(jobId);
+  const { jobData, savedJob } = await getJobDetails(jobId);
 
-  const locationFlag = getFlagEmoji(data.location);
+  const locationFlag = getFlagEmoji(jobData.location);
 
   return (
     <div className="grid grid-cols-3 gap-8">
@@ -99,21 +116,36 @@ export default async function JobPage({ params }: { params: Params }) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{data.jobTitle}</h1>
+            <h1 className="text-2xl font-bold">{jobData.jobTitle}</h1>
             <p className="text-muted-foreground text-sm">Smais LLC</p>
             <p className="text-muted-foreground text-sm">1 day ago</p>
             <Badge className="rounded-full">
-              {locationFlag} <span>{data.location}</span>
+              {locationFlag} <span>{jobData.location}</span>
             </Badge>
           </div>
 
-          <Button>
-            <Heart /> Save Job
-          </Button>
+          {session?.user ? (
+            <form
+              action={
+                savedJob
+                  ? unSaveJobPost.bind(null, savedJob.id)
+                  : saveJobPost.bind(null, jobId)
+              }
+            >
+              <SaveJobButton savedJob={!!savedJob} />
+            </form>
+          ) : (
+            <Link
+              href="/login"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Login
+            </Link>
+          )}
         </div>
 
         <section>
-          <JSONtoHTML json={JSON.parse(data.jobDescription)} />
+          <JSONtoHTML json={JSON.parse(jobData.jobDescription)} />
         </section>
         <section>
           <div className="flex justify-between items-center">
@@ -131,7 +163,7 @@ export default async function JobPage({ params }: { params: Params }) {
           </div>
           <div className="flex flex-wrap gap-3">
             {benefits.map((benefit) => {
-              const isOffered = data.benefits.includes(benefit.id);
+              const isOffered = jobData.benefits.includes(benefit.id);
               return (
                 <Badge
                   key={benefit.id}
@@ -158,7 +190,7 @@ export default async function JobPage({ params }: { params: Params }) {
             <div>
               <h3 className="font-semibold">Apply Now</h3>
               <p className="text-muted-foreground text-sm">
-                Please let {data.Company.name} know you found this job on
+                Please let {jobData.Company.name} know you found this job on
                 CareerPulse, this help us grow our community!
               </p>
             </div>
@@ -173,8 +205,8 @@ export default async function JobPage({ params }: { params: Params }) {
               <span>Apply Before</span>
               <span>
                 {new Date(
-                  data.createdAt.getTime() +
-                    data.listingDuration * 24 * 60 * 60 * 1000
+                  jobData.createdAt.getTime() +
+                    jobData.listingDuration * 24 * 60 * 60 * 1000
                 ).toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
@@ -185,7 +217,7 @@ export default async function JobPage({ params }: { params: Params }) {
             <div className="flex justify-between">
               <span>Postad on</span>
               <span>
-                {data.createdAt.toLocaleDateString("en-US", {
+                {jobData.createdAt.toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
@@ -194,11 +226,11 @@ export default async function JobPage({ params }: { params: Params }) {
             </div>
             <div className="flex justify-between">
               <span>Emplyment Type</span>
-              <span>{data.employmentType}</span>
+              <span>{jobData.employmentType}</span>
             </div>
             <div className="flex justify-between">
               <span>Job Location</span>
-              {locationFlag && <span>{locationFlag}</span>} {data.location}
+              {locationFlag && <span>{locationFlag}</span>} {jobData.location}
             </div>
           </div>
         </Card>
@@ -207,18 +239,18 @@ export default async function JobPage({ params }: { params: Params }) {
           <h3>About the Company</h3>
           <div className="flex justify-between">
             <span>Company Name</span>
-            <span>{data.Company.name}</span>
+            <span>{jobData.Company.name}</span>
           </div>
           <div className="flex justify-between">
             <span>Company Location</span>
-            <span>{data.Company.location}</span>
+            <span>{jobData.Company.location}</span>
           </div>
           <div className="flex justify-between">
             <span>Company Website</span>
-            <a href={data.Company.website}>Go to Website</a>
+            <a href={jobData.Company.website}>Go to Website</a>
           </div>
           <div>
-            <p className="">{data.Company.about}</p>
+            <p className="">{jobData.Company.about}</p>
           </div>
         </Card>
       </div>
