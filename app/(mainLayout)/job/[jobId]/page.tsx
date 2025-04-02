@@ -106,7 +106,7 @@ export default async function JobPage({ params }: { params: Params }) {
     throw new Error("Rate limit exceeded");
   }
 
-  const { jobData, savedJob } = await getJobDetails(jobId);
+  const { jobData, savedJob } = await getJobDetails(jobId, session?.user?.id);
 
   const locationFlag = getFlagEmoji(jobData.location);
 

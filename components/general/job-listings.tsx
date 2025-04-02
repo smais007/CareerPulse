@@ -30,6 +30,10 @@ async function getData() {
     },
   });
 
+  if (!data) {
+    return [];
+  }
+
   return data;
 }
 

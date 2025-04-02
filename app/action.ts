@@ -8,6 +8,7 @@ import { requireUser } from "@/utils/requireUser";
 import { stripe } from "@/utils/stripe";
 import { companySchema, jobSchema, jobSeekerSchema } from "@/utils/zod-schemas";
 import { request } from "@arcjet/next";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -208,6 +209,8 @@ export async function saveJobPost(jobId: string) {
       userId: user.id as string,
     },
   });
+
+  revalidatePath(`/job/${jobId}`);
 }
 
 export async function unSaveJobPost(savedJobPostId: string) {
@@ -219,10 +222,14 @@ export async function unSaveJobPost(savedJobPostId: string) {
     throw new Error("Forbidden");
   }
 
-  await prisma.savedJobPost.delete({
+  const data = await prisma.savedJobPost.delete({
     where: {
       id: savedJobPostId,
       userId: user.id,
     },
+    select: {
+      jobPostId: true,
+    },
   });
+  revalidatePath(`/job/${data.jobPostId}`);
 }
