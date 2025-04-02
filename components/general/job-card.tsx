@@ -26,7 +26,7 @@ interface JobCardProps {
 
 export function JobCard({ job }: JobCardProps) {
   return (
-    <Link href={"/job"}>
+    <Link href={`/job/${job.id}`}>
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flrx-row gap-4">

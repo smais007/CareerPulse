@@ -5,6 +5,7 @@ import arcjet, {
   sensitiveInfo,
   shield,
   slidingWindow,
+  tokenBucket,
 } from "@arcjet/next";
 
 export {
@@ -14,6 +15,7 @@ export {
   sensitiveInfo,
   shield,
   slidingWindow,
+  tokenBucket,
 };
 
 export default arcjet({
