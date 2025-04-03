@@ -4,43 +4,50 @@ import { EmptyState } from "./empty-state";
 import { JobCard } from "./job-card";
 import { MainPagination } from "./main-pagination";
 
-async function getData() {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-  const data = await prisma.jobPost.findMany({
-    where: {
-      status: "ACTIVE",
-    },
-    select: {
-      id: true,
-      jobTitle: true,
-      salaryFrom: true,
-      salaryTo: true,
-      location: true,
-      employmentType: true,
-      createdAt: true,
-      Company: {
-        select: {
-          name: true,
-          logo: true,
-          about: true,
-          location: true,
+async function getData(page: number = 1, pageSize: number = 2) {
+  const skip = (page - 1) * pageSize;
+
+  const [data, totalCount] = await Promise.all([
+    await prisma.jobPost.findMany({
+      where: {
+        status: "ACTIVE",
+      },
+      take: pageSize,
+      skip: skip,
+      select: {
+        id: true,
+        jobTitle: true,
+        salaryFrom: true,
+        salaryTo: true,
+        location: true,
+        employmentType: true,
+        createdAt: true,
+        Company: {
+          select: {
+            name: true,
+            logo: true,
+            about: true,
+            location: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
 
-  if (!data) {
-    return [];
-  }
+    prisma.jobPost.count({
+      where: {
+        status: "ACTIVE",
+      },
+    }),
+  ]);
 
-  return data;
+  return { jobs: data, totalPages: Math.ceil(totalCount / pageSize) };
 }
 
-export async function JobListings() {
-  const data = await getData();
+export async function JobListings({ currentPage }: { currentPage: number }) {
+  const { jobs: data, totalPages } = await getData(currentPage);
 
   return (
     <>
@@ -59,7 +66,7 @@ export async function JobListings() {
         />
       )}
       <div className="mt-5 flex justify-center">
-        <MainPagination totalPages={20} currentPage={15} />
+        <MainPagination totalPages={totalPages} currentPage={currentPage} />
       </div>
     </>
   );
