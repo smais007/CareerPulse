@@ -4,6 +4,7 @@ import { EmptyState } from "./empty-state";
 import { JobCard } from "./job-card";
 
 async function getData() {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   const data = await prisma.jobPost.findMany({
     where: {
       status: "ACTIVE",
