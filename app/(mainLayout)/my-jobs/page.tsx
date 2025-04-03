@@ -133,7 +133,7 @@ export default async function MyJobsPage() {
                           />
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
-                            <Link href={`/job/${listing.id}/delete`}>
+                            <Link href={`/my-jobs/${listing.id}/delete`}>
                               <Trash2 className="size-4" /> <span>Delete</span>
                             </Link>
                           </DropdownMenuItem>
