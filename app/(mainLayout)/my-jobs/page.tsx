@@ -1,3 +1,4 @@
+import { CoptLinkMenuItem } from "@/components/general/copy-link";
 import { EmptyState } from "@/components/general/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/utils/requireUser";
-import { CopyCheckIcon, MoreHorizontal, PenBox, Trash2 } from "lucide-react";
+import { MoreHorizontal, PenBox, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -127,12 +128,9 @@ export default async function MyJobsPage() {
                               <PenBox className="size-4" /> <span>Edit</span>
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/job/${listing.id}/edit`}>
-                              <CopyCheckIcon className="size-4" />{" "}
-                              <span>Copy Job URL</span>
-                            </Link>
-                          </DropdownMenuItem>
+                          <CoptLinkMenuItem
+                            jobUrl={`${process.env.NEXT_PUBLIC_URL}/job/${listing.id}`}
+                          />
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
                             <Link href={`/job/${listing.id}/delete`}>
