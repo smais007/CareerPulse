@@ -123,7 +123,7 @@ export default async function MyJobsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem asChild>
-                            <Link href={`/job/${listing.id}/edit`}>
+                            <Link href={`/my-jobs/${listing.id}/edit`}>
                               <PenBox className="size-4" /> <span>Edit</span>
                             </Link>
                           </DropdownMenuItem>
