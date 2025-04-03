@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import React from "react";
 import { EmptyState } from "./empty-state";
 import { JobCard } from "./job-card";
+import { MainPagination } from "./main-pagination";
 
 async function getData() {
   await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -57,6 +58,9 @@ export async function JobListings() {
           description="Be the first one to post a job"
         />
       )}
+      <div className="mt-5 flex justify-center">
+        <MainPagination totalPages={20} currentPage={15} />
+      </div>
     </>
   );
 }
