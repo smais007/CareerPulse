@@ -26,7 +26,7 @@ async function getData({
       },
     }),
     ...(location &&
-      location !== "Worldwide" && {
+      location !== "worldwide" && {
         location: location,
       }),
   };
